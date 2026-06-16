@@ -25,7 +25,7 @@ jobs:
 
       - name: Build with PyInstaller (dir build)
         run: |
-          pyinstaller --noconfirm --windowed --name Pandian --add-data "pandian.py;." --add-data "icon.ico;." --icon "icon.ico" gui_qt.py
+          pyinstaller --noconfirm --noconsole --name Pandian --add-data "pandian.py;." --add-data "icon.ico;." --icon "icon.ico" --exclude-module matplotlib --exclude-module numpy --exclude-module scipy --exclude-module sklearn --exclude-module PySide6.QtWebEngine --exclude-module PySide6.QtWebChannel --exclude-module PySide6.QtWebEngineCore --exclude-module PySide6.QtWebEngineWidgets --strip gui_qt.py
 
       - name: Zip dist directory
         run: pwsh -Command "Compress-Archive -Path 'dist/Pandian\\*' -DestinationPath 'dist/Pandian.zip' -Force"
