@@ -12,10 +12,6 @@ class MainWindow(QtWidgets.QWidget):
         self.setWindowTitle('固定资产盘点系统')
         self.setFixedSize(700, 480)
         self.setStyleSheet("""
-            QWidget {
-                font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
-                font-size: 14px;
-            }
             QGroupBox {
                 border: 2px solid #e0e0e0;
                 border-radius: 8px;
@@ -38,6 +34,7 @@ class MainWindow(QtWidgets.QWidget):
                 border-radius: 6px;
                 padding: 8px 16px;
                 font-weight: bold;
+                font-size: 14px;
             }
             QPushButton:hover {
                 background-color: #357abd;
@@ -50,13 +47,11 @@ class MainWindow(QtWidgets.QWidget):
                 border-radius: 4px;
                 padding: 6px 10px;
                 background-color: white;
+                font-size: 14px;
             }
             QLineEdit:focus {
                 border-color: #4a90d9;
                 outline: none;
-            }
-            QLabel {
-                color: #555;
             }
         """)
         init_db()
@@ -108,63 +103,45 @@ class MainWindow(QtWidgets.QWidget):
 
         # Total assets
         total_widget = QtWidgets.QWidget()
-        total_widget.setStyleSheet("""
-            QWidget {
-                background-color: #ffffff;
-                border-radius: 10px;
-                padding: 15px 25px;
-                border: 1px solid #e0e0e0;
-            }
-        """)
+        total_widget.setStyleSheet("background-color: #ffffff; border-radius: 10px; border: 1px solid #e0e0e0;")
         total_layout = QtWidgets.QVBoxLayout(total_widget)
+        total_layout.setContentsMargins(15, 15, 15, 15)
         total_label = QtWidgets.QLabel('总固资数量')
         total_label.setAlignment(QtCore.Qt.AlignCenter)
-        total_label.setStyleSheet('font-size: 13px; color: #888;')
+        total_label.setStyleSheet("font-size: 13px; color: #888;")
         self.total_count_lbl = QtWidgets.QLabel('0')
         self.total_count_lbl.setAlignment(QtCore.Qt.AlignCenter)
-        self.total_count_lbl.setStyleSheet('font-weight: bold; font-size: 32px; color: #333333;')
+        self.total_count_lbl.setStyleSheet("font-weight: bold; font-size: 32px; color: #333333;")
         total_layout.addWidget(total_label)
         total_layout.addWidget(self.total_count_lbl)
         sg_layout.addWidget(total_widget)
 
         # Checked assets
         checked_widget = QtWidgets.QWidget()
-        checked_widget.setStyleSheet("""
-            QWidget {
-                background-color: #e8f5e9;
-                border-radius: 10px;
-                padding: 15px 25px;
-                border: 1px solid #c8e6c9;
-            }
-        """)
+        checked_widget.setStyleSheet("background-color: #e8f5e9; border-radius: 10px; border: 1px solid #c8e6c9;")
         checked_layout = QtWidgets.QVBoxLayout(checked_widget)
+        checked_layout.setContentsMargins(15, 15, 15, 15)
         checked_label = QtWidgets.QLabel('已盘点数量')
         checked_label.setAlignment(QtCore.Qt.AlignCenter)
-        checked_label.setStyleSheet('font-size: 13px; color: #66bb6a;')
+        checked_label.setStyleSheet("font-size: 13px; color: #66bb6a;")
         self.checked_count_lbl = QtWidgets.QLabel('0')
         self.checked_count_lbl.setAlignment(QtCore.Qt.AlignCenter)
-        self.checked_count_lbl.setStyleSheet('font-weight: bold; font-size: 32px; color: #2e7d32;')
+        self.checked_count_lbl.setStyleSheet("font-weight: bold; font-size: 32px; color: #2e7d32;")
         checked_layout.addWidget(checked_label)
         checked_layout.addWidget(self.checked_count_lbl)
         sg_layout.addWidget(checked_widget)
 
         # Unchecked assets
         unchecked_widget = QtWidgets.QWidget()
-        unchecked_widget.setStyleSheet("""
-            QWidget {
-                background-color: #ffebee;
-                border-radius: 10px;
-                padding: 15px 25px;
-                border: 1px solid #ffcdd2;
-            }
-        """)
+        unchecked_widget.setStyleSheet("background-color: #ffebee; border-radius: 10px; border: 1px solid #ffcdd2;")
         unchecked_layout = QtWidgets.QVBoxLayout(unchecked_widget)
+        unchecked_layout.setContentsMargins(15, 15, 15, 15)
         unchecked_label = QtWidgets.QLabel('待盘点数量')
         unchecked_label.setAlignment(QtCore.Qt.AlignCenter)
-        unchecked_label.setStyleSheet('font-size: 13px; color: #ef5350;')
+        unchecked_label.setStyleSheet("font-size: 13px; color: #ef5350;")
         self.unchecked_count_lbl = QtWidgets.QLabel('0')
         self.unchecked_count_lbl.setAlignment(QtCore.Qt.AlignCenter)
-        self.unchecked_count_lbl.setStyleSheet('font-weight: bold; font-size: 32px; color: #c62828;')
+        self.unchecked_count_lbl.setStyleSheet("font-weight: bold; font-size: 32px; color: #c62828;")
         unchecked_layout.addWidget(unchecked_label)
         unchecked_layout.addWidget(self.unchecked_count_lbl)
         sg_layout.addWidget(unchecked_widget)
@@ -199,40 +176,52 @@ class MainWindow(QtWidgets.QWidget):
         cg_layout.setSpacing(10)
         cg_layout.setContentsMargins(10, 10, 10, 10)
 
-        cg_layout.addWidget(QtWidgets.QLabel('主资产编号：'), 0, 0)
+        lbl_id = QtWidgets.QLabel('主资产编号：')
+        lbl_id.setMinimumWidth(80)
+        cg_layout.addWidget(lbl_id, 0, 0)
         self.asset_id_edit = QtWidgets.QLineEdit()
         self.asset_id_edit.returnPressed.connect(self.handle_query)
         self.asset_id_edit.setPlaceholderText('请输入主资产编号')
         cg_layout.addWidget(self.asset_id_edit, 0, 1)
         btn_query = QtWidgets.QPushButton('查询')
         btn_query.setFixedHeight(30)
+        btn_query.setFixedWidth(70)
         btn_query.clicked.connect(self.handle_query)
         cg_layout.addWidget(btn_query, 0, 2)
 
-        cg_layout.addWidget(QtWidgets.QLabel('资产名称：'), 1, 0)
+        lbl_name = QtWidgets.QLabel('资产名称：')
+        lbl_name.setMinimumWidth(80)
+        cg_layout.addWidget(lbl_name, 1, 0)
         self.asset_name_lbl = QtWidgets.QLineEdit()
         self.asset_name_lbl.setReadOnly(True)
-        self.asset_name_lbl.setStyleSheet('background-color: #f5f5f5; color: #333;')
+        self.asset_name_lbl.setStyleSheet("background-color: #f5f5f5; color: #333;")
         cg_layout.addWidget(self.asset_name_lbl, 1, 1, 1, 2)
 
-        cg_layout.addWidget(QtWidgets.QLabel('责任人：'), 2, 0)
+        lbl_owner = QtWidgets.QLabel('责任人：')
+        lbl_owner.setMinimumWidth(80)
+        cg_layout.addWidget(lbl_owner, 2, 0)
         self.owner_name_lbl = QtWidgets.QLineEdit()
         self.owner_name_lbl.setReadOnly(True)
-        self.owner_name_lbl.setStyleSheet('background-color: #f5f5f5; color: #333;')
+        self.owner_name_lbl.setStyleSheet("background-color: #f5f5f5; color: #333;")
         cg_layout.addWidget(self.owner_name_lbl, 2, 1, 1, 2)
 
-        cg_layout.addWidget(QtWidgets.QLabel('2025位置：'), 3, 0)
+        lbl_loc1 = QtWidgets.QLabel('2025位置：')
+        lbl_loc1.setMinimumWidth(80)
+        cg_layout.addWidget(lbl_loc1, 3, 0)
         self.loc2025_lbl = QtWidgets.QLineEdit()
         self.loc2025_lbl.setReadOnly(True)
-        self.loc2025_lbl.setStyleSheet('background-color: #f5f5f5; color: #333;')
+        self.loc2025_lbl.setStyleSheet("background-color: #f5f5f5; color: #333;")
         cg_layout.addWidget(self.loc2025_lbl, 3, 1, 1, 2)
 
-        cg_layout.addWidget(QtWidgets.QLabel('2026位置：'), 4, 0)
+        lbl_loc2 = QtWidgets.QLabel('2026位置：')
+        lbl_loc2.setMinimumWidth(80)
+        cg_layout.addWidget(lbl_loc2, 4, 0)
         self.loc2026_edit = QtWidgets.QLineEdit()
         self.loc2026_edit.setPlaceholderText('请输入2026年盘点位置')
         cg_layout.addWidget(self.loc2026_edit, 4, 1)
         btn_save = QtWidgets.QPushButton('保存')
         btn_save.setFixedHeight(30)
+        btn_save.setFixedWidth(70)
         btn_save.setStyleSheet("""
             QPushButton {
                 background-color: #43a047;
