@@ -1,8 +1,17 @@
 from PySide6 import QtWidgets, QtGui, QtCore
 from PySide6.QtWidgets import QFileDialog, QMessageBox, QSystemTrayIcon, QMenu
 import sys
+import os
 import sqlite3
 from pandian import init_db, import_data_file, export_checked_file, export_unchecked_file, export_all_file
+
+
+def get_resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath('.')
+    return os.path.join(base_path, relative_path)
 
 
 class MainWindow(QtWidgets.QWidget):
@@ -15,17 +24,33 @@ class MainWindow(QtWidgets.QWidget):
         self.init_tray()
 
     def init_tray(self):
+        icon_path = get_resource_path('icon.ico')
+        icon = QtGui.QIcon(icon_path)
+        
+        if icon.isNull():
+            pixmap = QtGui.QPixmap(32, 32)
+            pixmap.fill(QtGui.QColor(33, 150, 243))
+            painter = QtGui.QPainter(pixmap)
+            painter.setPen(QtGui.QColor(255, 255, 255))
+            painter.setFont(QtGui.QFont('Arial', 14, QtGui.QFont.Bold))
+            painter.drawText(pixmap.rect(), QtCore.Qt.AlignCenter, 'P')
+            painter.end()
+            icon = QtGui.QIcon(pixmap)
+        
         self.tray_icon = QSystemTrayIcon(self)
-        self.tray_icon.setIcon(QtGui.QIcon('icon.ico'))
+        self.tray_icon.setIcon(icon)
         self.tray_icon.setToolTip('固定资产盘点系统')
-        tray_menu = QMenu()
+        
+        tray_menu = QMenu(self)
         show_action = tray_menu.addAction('显示窗口')
         show_action.triggered.connect(self.show_window)
         quit_action = tray_menu.addAction('退出')
         quit_action.triggered.connect(self.quit_app)
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.activated.connect(self.on_tray_activated)
-        self.tray_icon.show()
+        
+        if QSystemTrayIcon.isSystemTrayAvailable():
+            self.tray_icon.show()
 
     def on_tray_activated(self, reason):
         if reason == QSystemTrayIcon.Trigger or reason == QSystemTrayIcon.DoubleClick:
@@ -48,6 +73,23 @@ class MainWindow(QtWidgets.QWidget):
     def init_ui(self):
         layout = QtWidgets.QVBoxLayout()
         layout.setSpacing(10)
+
+        self.setStyleSheet('''
+            QWidget { background-color: white; color: #333; }
+            QGroupBox { border: 1px solid #ccc; border-radius: 5px; padding: 10px; font-weight: bold; }
+            QLabel { background-color: transparent; }
+            QLineEdit { border: 1px solid #ccc; border-radius: 3px; padding: 5px; background-color: white; color: #333; }
+            QPushButton { background-color: #f0f0f0; border: 1px solid #ccc; border-radius: 3px; padding: 5px 15px; color: #333; }
+            QPushButton:hover { background-color: #e0e0e0; }
+        ''')
+
+        top_bar = QtWidgets.QHBoxLayout()
+        btn_import = QtWidgets.QPushButton('导入数据')
+        btn_import.setFixedSize(80, 28)
+        btn_import.clicked.connect(self.handle_import)
+        top_bar.addWidget(btn_import)
+        top_bar.addStretch()
+        layout.addLayout(top_bar)
 
         # Stats
         stats_group = QtWidgets.QGroupBox('盘点统计')
@@ -91,47 +133,45 @@ class MainWindow(QtWidgets.QWidget):
         stats_group.setLayout(sg_layout)
         layout.addWidget(stats_group)
 
-        # Import
-        import_group = QtWidgets.QGroupBox('数据导入')
-        ig_layout = QtWidgets.QHBoxLayout()
-        btn_import = QtWidgets.QPushButton('选择Excel文件并导入')
-        btn_import.clicked.connect(self.handle_import)
-        ig_layout.addWidget(btn_import)
-        import_group.setLayout(ig_layout)
-        layout.addWidget(import_group)
-
         # Check
         check_group = QtWidgets.QGroupBox('资产盘点')
         cg_layout = QtWidgets.QGridLayout()
-        cg_layout.setSpacing(5)
+        cg_layout.setSpacing(10)
 
         cg_layout.addWidget(QtWidgets.QLabel('主资产编号：'), 0, 0)
         self.asset_id_edit = QtWidgets.QLineEdit()
+        self.asset_id_edit.setFixedHeight(36)
         self.asset_id_edit.returnPressed.connect(self.handle_query)
         cg_layout.addWidget(self.asset_id_edit, 0, 1)
         btn_query = QtWidgets.QPushButton('查询')
+        btn_query.setFixedHeight(36)
         btn_query.clicked.connect(self.handle_query)
         cg_layout.addWidget(btn_query, 0, 2)
 
         cg_layout.addWidget(QtWidgets.QLabel('资产名称：'), 1, 0)
         self.asset_name_lbl = QtWidgets.QLineEdit()
         self.asset_name_lbl.setReadOnly(True)
+        self.asset_name_lbl.setFixedHeight(36)
         cg_layout.addWidget(self.asset_name_lbl, 1, 1, 1, 2)
 
         cg_layout.addWidget(QtWidgets.QLabel('责任人：'), 2, 0)
         self.owner_name_lbl = QtWidgets.QLineEdit()
         self.owner_name_lbl.setReadOnly(True)
+        self.owner_name_lbl.setFixedHeight(36)
         cg_layout.addWidget(self.owner_name_lbl, 2, 1, 1, 2)
 
         cg_layout.addWidget(QtWidgets.QLabel('2025位置：'), 3, 0)
         self.loc2025_lbl = QtWidgets.QLineEdit()
         self.loc2025_lbl.setReadOnly(True)
+        self.loc2025_lbl.setFixedHeight(36)
         cg_layout.addWidget(self.loc2025_lbl, 3, 1, 1, 2)
 
         cg_layout.addWidget(QtWidgets.QLabel('2026位置：'), 4, 0)
         self.loc2026_edit = QtWidgets.QLineEdit()
+        self.loc2026_edit.setFixedHeight(36)
         cg_layout.addWidget(self.loc2026_edit, 4, 1)
         btn_save = QtWidgets.QPushButton('保存')
+        btn_save.setFixedHeight(36)
         btn_save.clicked.connect(self.handle_save)
         cg_layout.addWidget(btn_save, 4, 2)
 
@@ -144,14 +184,17 @@ class MainWindow(QtWidgets.QWidget):
         eg_layout.setSpacing(8)
 
         btn_checked = QtWidgets.QPushButton('已盘点资产')
+        btn_checked.setFixedHeight(36)
         btn_checked.clicked.connect(self.export_checked)
         eg_layout.addWidget(btn_checked)
 
         btn_unchecked = QtWidgets.QPushButton('未盘点资产')
+        btn_unchecked.setFixedHeight(36)
         btn_unchecked.clicked.connect(self.export_unchecked)
         eg_layout.addWidget(btn_unchecked)
 
         btn_all = QtWidgets.QPushButton('全量报表')
+        btn_all.setFixedHeight(36)
         btn_all.clicked.connect(self.export_all)
         eg_layout.addWidget(btn_all)
 
