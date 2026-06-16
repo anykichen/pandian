@@ -1,7 +1,8 @@
-from PySide6 import QtWidgets, QtCore
-from PySide6.QtWidgets import QFileDialog, QMessageBox
+from PySide6 import QtWidgets, QtGui
+from PySide6.QtWidgets import QFileDialog, QMessageBox, QSystemTrayIcon, QMenu
 import sys
 import sqlite3
+import os
 from pandian import init_db, import_data_file, export_checked_file, export_unchecked_file, export_all_file
 
 
@@ -11,20 +12,53 @@ class MainWindow(QtWidgets.QWidget):
         self.setWindowTitle('固定资产盘点系统')
         self.setFixedSize(700, 420)
         self.init_ui()
+        self.init_tray()
         init_db()
 
+    def init_tray(self):
+        # 创建托盘图标
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(QtGui.QIcon('icon.ico'))
+        self.tray_icon.setToolTip('固定资产盘点系统')
+
+        # 托盘菜单
+        tray_menu = QMenu()
+        show_action = tray_menu.addAction('显示窗口')
+        show_action.triggered.connect(self.show_window)
+        quit_action = tray_menu.addAction('退出')
+        quit_action.triggered.connect(self.quit_app)
+        self.tray_icon.setContextMenu(tray_menu)
+
+        # 点击托盘图标显示窗口
+        self.tray_icon.activated.connect(self.on_tray_activated)
+        self.tray_icon.show()
+
+    def on_tray_activated(self, reason):
+        if reason == QSystemTrayIcon.Trigger or reason == QSystemTrayIcon.DoubleClick:
+            self.show_window()
+
+    def show_window(self):
+        self.show()
+        self.raise_()
+        self.activateWindow()
+
+    def quit_app(self):
+        self.tray_icon.hide()
+        QtWidgets.QApplication.quit()
+
+    def closeEvent(self, event):
+        # 关闭窗口时最小化到托盘
+        event.ignore()
+        self.hide()
+        self.tray_icon.showMessage('固定资产盘点系统', '程序已最小化到托盘，点击托盘图标可重新显示')
+
     def init_ui(self):
-        layout = QtWidgets.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout()
 
         # Import section
         import_group = QtWidgets.QGroupBox('1. 固定资产数据导入')
         ig_layout = QtWidgets.QHBoxLayout()
-        self.import_path = QtWidgets.QLineEdit()
-        ig_layout.addWidget(self.import_path)
-        btn_browse = QtWidgets.QPushButton('选择Excel文件')
-        btn_browse.clicked.connect(self.browse_file)
-        ig_layout.addWidget(btn_browse)
-        btn_import = QtWidgets.QPushButton('一键导入')
+        btn_import = QtWidgets.QPushButton('选择Excel文件并导入')
         btn_import.clicked.connect(self.handle_import)
         ig_layout.addWidget(btn_import)
         import_group.setLayout(ig_layout)
@@ -35,7 +69,6 @@ class MainWindow(QtWidgets.QWidget):
         cg_layout = QtWidgets.QGridLayout()
         cg_layout.addWidget(QtWidgets.QLabel('主资产编号：'), 0, 0)
         self.asset_id_edit = QtWidgets.QLineEdit()
-        # 回车触发查询
         self.asset_id_edit.returnPressed.connect(self.handle_query)
         cg_layout.addWidget(self.asset_id_edit, 0, 1)
         btn_query = QtWidgets.QPushButton('查询资产')
@@ -79,20 +112,13 @@ class MainWindow(QtWidgets.QWidget):
         report_group.setLayout(rg_layout)
         layout.addWidget(report_group)
 
-    def browse_file(self):
-        path, _ = QFileDialog.getOpenFileName(self, '选择固定资产Excel文件', filter='Excel Files (*.xlsx *.xls)')
-        if path:
-            self.import_path.setText(path)
-
     def handle_import(self):
-        fp = self.import_path.text().strip()
-        if not fp:
-            QMessageBox.warning(self, '警告', '请先选择Excel文件')
+        path, _ = QFileDialog.getOpenFileName(self, '选择固定资产Excel文件', filter='Excel Files (*.xlsx *.xls)')
+        if not path:
             return
-        ok = import_data_file(fp)
+        ok = import_data_file(path)
         if ok:
             QMessageBox.information(self, '成功', '数据导入完成')
-            self.import_path.setText('')
         else:
             QMessageBox.critical(self, '错误', '导入失败，查看终端输出')
 
@@ -131,7 +157,11 @@ class MainWindow(QtWidgets.QWidget):
             conn.close()
             QMessageBox.information(self, '成功', '盘点结果已保存')
             # 清空并聚焦
-            self.asset_id_edit.clear(); self.asset_name_lbl.clear(); self.owner_name_lbl.clear(); self.loc2025_lbl.clear(); self.loc2026_edit.clear()
+            self.asset_id_edit.clear()
+            self.asset_name_lbl.clear()
+            self.owner_name_lbl.clear()
+            self.loc2025_lbl.clear()
+            self.loc2026_edit.clear()
             self.asset_id_edit.setFocus()
         except Exception as e:
             QMessageBox.critical(self, '错误', f'保存失败：{e}')

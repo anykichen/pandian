@@ -124,7 +124,7 @@ class AssetCheckApp:
 
         try:
             # 读取Excel文件，匹配您的模板列名
-            df = pd.read_excel(file_path)
+            df = pd.read_excel(file_path, dtype={'主资产编号': str})
             required_cols = ['主资产编号', '资产名称', '姓名', '2025位置']
             if not all(col in df.columns for col in required_cols):
                 messagebox.showerror("错误", "Excel文件列名不符合模板要求！\n必须包含：主资产编号、资产名称、姓名、2025位置")
@@ -296,7 +296,7 @@ class AssetCheckApp:
 # -------------------------- 程序入口 --------------------------
 def import_data_file(file_path):
     try:
-        df = pd.read_excel(file_path)
+        df = pd.read_excel(file_path, dtype={'主资产编号': str})
         required_cols = ['主资产编号', '资产名称', '姓名', '2025位置']
         if not all(col in df.columns for col in required_cols):
             print("错误：Excel文件列名不符合模板要求。需要包含：主资产编号、资产名称、姓名、2025位置")

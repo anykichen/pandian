@@ -1,2 +1,5 @@
 pandas
 openpyxl
+Pillow
+PySide6
+pyinstaller
