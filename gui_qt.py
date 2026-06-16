@@ -59,9 +59,9 @@ class MainWindow(QtWidgets.QWidget):
                 color: #555;
             }
         """)
+        init_db()
         self.init_ui()
         self.init_tray()
-        init_db()
 
     def init_tray(self):
         self.tray_icon = QSystemTrayIcon(self)
