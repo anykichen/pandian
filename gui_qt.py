@@ -1,4 +1,4 @@
-from PySide6 import QtWidgets, QtGui
+from PySide6 import QtWidgets, QtGui, QtCore
 from PySide6.QtWidgets import QFileDialog, QMessageBox, QSystemTrayIcon, QMenu
 import sys
 import sqlite3
@@ -54,6 +54,50 @@ class MainWindow(QtWidgets.QWidget):
 
     def init_ui(self):
         layout = QtWidgets.QVBoxLayout()
+
+        # Stats section
+        stats_group = QtWidgets.QGroupBox('盘点统计')
+        sg_layout = QtWidgets.QHBoxLayout()
+
+        # Total assets
+        total_layout = QtWidgets.QVBoxLayout()
+        total_label = QtWidgets.QLabel('总固资数量')
+        total_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.total_count_lbl = QtWidgets.QLabel('0')
+        self.total_count_lbl.setAlignment(QtCore.Qt.AlignCenter)
+        self.total_count_lbl.setStyleSheet('font-weight: bold; font-size: 24px; color: #333333;')
+        total_layout.addWidget(total_label)
+        total_layout.addWidget(self.total_count_lbl)
+        sg_layout.addLayout(total_layout)
+
+        sg_layout.addWidget(QtWidgets.QFrame())
+
+        # Checked assets
+        checked_layout = QtWidgets.QVBoxLayout()
+        checked_label = QtWidgets.QLabel('已盘点数量')
+        checked_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.checked_count_lbl = QtWidgets.QLabel('0')
+        self.checked_count_lbl.setAlignment(QtCore.Qt.AlignCenter)
+        self.checked_count_lbl.setStyleSheet('font-weight: bold; font-size: 24px; color: #27ae60;')
+        checked_layout.addWidget(checked_label)
+        checked_layout.addWidget(self.checked_count_lbl)
+        sg_layout.addLayout(checked_layout)
+
+        sg_layout.addWidget(QtWidgets.QFrame())
+
+        # Unchecked assets
+        unchecked_layout = QtWidgets.QVBoxLayout()
+        unchecked_label = QtWidgets.QLabel('待盘点数量')
+        unchecked_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.unchecked_count_lbl = QtWidgets.QLabel('0')
+        self.unchecked_count_lbl.setAlignment(QtCore.Qt.AlignCenter)
+        self.unchecked_count_lbl.setStyleSheet('font-weight: bold; font-size: 24px; color: #e74c3c;')
+        unchecked_layout.addWidget(unchecked_label)
+        unchecked_layout.addWidget(self.unchecked_count_lbl)
+        sg_layout.addLayout(unchecked_layout)
+
+        stats_group.setLayout(sg_layout)
+        layout.addWidget(stats_group)
 
         # Import section
         import_group = QtWidgets.QGroupBox('1. 固定资产数据导入')
@@ -113,6 +157,19 @@ class MainWindow(QtWidgets.QWidget):
         layout.addWidget(report_group)
 
         self.setLayout(layout)
+        self.update_stats()
+
+    def update_stats(self):
+        conn = sqlite3.connect('fixed_asset.db')
+        c = conn.cursor()
+        c.execute('SELECT COUNT(*) FROM assets')
+        total = c.fetchone()[0]
+        c.execute('SELECT COUNT(*) FROM assets WHERE is_checked = 1')
+        checked = c.fetchone()[0]
+        conn.close()
+        self.total_count_lbl.setText(str(total))
+        self.checked_count_lbl.setText(str(checked))
+        self.unchecked_count_lbl.setText(str(total - checked))
 
     def handle_import(self):
         path, _ = QFileDialog.getOpenFileName(self, '选择固定资产Excel文件', filter='Excel Files (*.xlsx *.xls)')
@@ -121,6 +178,7 @@ class MainWindow(QtWidgets.QWidget):
         ok = import_data_file(path)
         if ok:
             QMessageBox.information(self, '成功', '数据导入完成')
+            self.update_stats()
         else:
             QMessageBox.critical(self, '错误', '导入失败，查看终端输出')
 
@@ -165,6 +223,7 @@ class MainWindow(QtWidgets.QWidget):
             self.loc2025_lbl.clear()
             self.loc2026_edit.clear()
             self.asset_id_edit.setFocus()
+            self.update_stats()
         except Exception as e:
             QMessageBox.critical(self, '错误', f'保存失败：{e}')
 
