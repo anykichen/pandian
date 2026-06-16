@@ -112,6 +112,8 @@ class MainWindow(QtWidgets.QWidget):
         report_group.setLayout(rg_layout)
         layout.addWidget(report_group)
 
+        self.setLayout(layout)
+
     def handle_import(self):
         path, _ = QFileDialog.getOpenFileName(self, '选择固定资产Excel文件', filter='Excel Files (*.xlsx *.xls)')
         if not path:
